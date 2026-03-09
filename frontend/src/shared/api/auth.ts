@@ -32,7 +32,11 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ refreshToken }),
     })
-    if (!res.ok) throw new Error('Refresh failed')
+    if (!res.ok) {
+      const err: any = new Error('Refresh failed')
+      err.status = res.status
+      throw err
+    }
     return res.json()
   },
 
