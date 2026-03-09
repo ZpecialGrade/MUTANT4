@@ -8,6 +8,8 @@ import java.util.UUID;
 import com.stylish.auth.config.JwtProperties;
 import com.stylish.auth.user.UserEntity;
 
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -34,7 +36,8 @@ public class TokenService {
 				.subject(user.getId().toString())
 				.claim("email", user.getEmail())
 				.build();
-		return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+		JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
+		return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
 	}
 
 	public long accessExpiresInSeconds(Instant now) {
