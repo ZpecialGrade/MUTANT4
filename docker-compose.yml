@@ -112,6 +112,19 @@ services:
       timeout: 3s
       retries: 20
 
+  db-client:
+    image: postgres:17
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: stylish
+      PGUSER: stylish
+      PGPASSWORD: stylish
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["sleep", "infinity"]
+
   frontend:
     build:
       context: .
