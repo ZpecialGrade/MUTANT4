@@ -7,13 +7,24 @@ type Props = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string
 }
 
-export function Input({ label, hint, error, className, ...rest }: Props) {
+export const Input = React.forwardRef<HTMLInputElement, Props>(function Input(
+  { label, hint, error, className, ...rest },
+  ref
+) {
   return (
     <label className={[styles.wrap, className].filter(Boolean).join(' ')}>
       {label ? <div className={styles.label}>{label}</div> : null}
-      <input className={[styles.input, error ? styles.inputError : ''].join(' ')} {...rest} />
-      {error ? <div className={styles.error}>{error}</div> : hint ? <div className={styles.hint}>{hint}</div> : null}
+      <input
+        ref={ref}
+        className={[styles.input, error ? styles.inputError : ''].join(' ')}
+        {...rest}
+      />
+      {error ? (
+        <div className={styles.error}>{error}</div>
+      ) : hint ? (
+        <div className={styles.hint}>{hint}</div>
+      ) : null}
     </label>
   )
-}
+})
 
