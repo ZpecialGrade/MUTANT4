@@ -4,6 +4,7 @@ import { AuthContext, AuthState } from '../shared/auth/AuthContext'
 import { authApi } from '../shared/api/auth'
 
 const REFRESH_TOKEN_KEY = 'stylish.refreshToken'
+const ACCESS_TOKEN_KEY = 'stylish.accessToken'
 
 function loadRefreshToken(): string | null {
   try {
@@ -22,8 +23,25 @@ function saveRefreshToken(token: string | null) {
   }
 }
 
+function loadAccessToken(): string | null {
+  try {
+    return sessionStorage.getItem(ACCESS_TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+function saveAccessToken(token: string | null) {
+  try {
+    if (!token) sessionStorage.removeItem(ACCESS_TOKEN_KEY)
+    else sessionStorage.setItem(ACCESS_TOKEN_KEY, token)
+  } catch {
+    // ignore
+  }
+}
+
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [accessToken, setAccessTokenState] = useState<string | null>(() => loadAccessToken())
   const [refreshToken, setRefreshTokenState] = useState<string | null>(() => loadRefreshToken())
 
   const queryClient = useMemo(
@@ -41,19 +59,24 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     () => ({
       accessToken,
       refreshToken,
-      setAccessToken,
+      setAccessToken: (t) => {
+        setAccessTokenState(t)
+        saveAccessToken(t)
+      },
       setRefreshToken: (t) => {
         setRefreshTokenState(t)
         saveRefreshToken(t)
       },
       loginWithTokens: (pair) => {
-        setAccessToken(pair.accessToken)
+        setAccessTokenState(pair.accessToken)
+        saveAccessToken(pair.accessToken)
         setRefreshTokenState(pair.refreshToken)
         saveRefreshToken(pair.refreshToken)
       },
       logout: async () => {
         const rt = refreshToken
-        setAccessToken(null)
+        setAccessTokenState(null)
+        saveAccessToken(null)
         setRefreshTokenState(null)
         saveRefreshToken(null)
         queryClient.clear()
