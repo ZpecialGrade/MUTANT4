@@ -1,0 +1,12 @@
+**/target
+**/.idea
+**/.vscode
+**/.classpath
+**/.project
+**/.settings
+**/*.iml
+.git
+.gitignore
+.gitattributes
+README.md
+src
