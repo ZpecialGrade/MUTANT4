@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.stylish.wardrobe.activity.ActivityService;
+import com.stylish.wardrobe.activity.ActivityType;
 import com.stylish.wardrobe.api.BadRequestException;
 import com.stylish.wardrobe.api.NotFoundException;
 import com.stylish.wardrobe.generation.GenerationClient;
@@ -37,6 +39,7 @@ public class LookService {
 	private final GenerationClient generationClient;
 	private final StorageService storageService;
 	private final ObjectKeyFactory objectKeyFactory;
+	private final ActivityService activityService;
 
 	public LookService(
 			ProfileService profileService,
@@ -45,7 +48,8 @@ public class LookService {
 			LookRepository lookRepository,
 			GenerationClient generationClient,
 			StorageService storageService,
-			ObjectKeyFactory objectKeyFactory
+			ObjectKeyFactory objectKeyFactory,
+			ActivityService activityService
 	) {
 		this.profileService = profileService;
 		this.userPhotoRepository = userPhotoRepository;
@@ -54,6 +58,7 @@ public class LookService {
 		this.generationClient = generationClient;
 		this.storageService = storageService;
 		this.objectKeyFactory = objectKeyFactory;
+		this.activityService = activityService;
 	}
 
 	@Transactional
@@ -94,6 +99,7 @@ public class LookService {
 		look.setItems(new HashSet<>(items));
 		LookEntity saved = lookRepository.save(look);
 
+		activityService.record(userId, ActivityType.LOOK_GENERATED, saved.getId(), saved.getName());
 		return toResponse(saved);
 	}
 
@@ -111,7 +117,9 @@ public class LookService {
 		LookEntity look = lookRepository.findByIdAndProfile_Id(lookId, profile.getId())
 				.orElseThrow(() -> new NotFoundException("Look not found"));
 		look.setName(req.name());
-		return toResponse(lookRepository.save(look));
+		LookEntity saved = lookRepository.save(look);
+		activityService.record(userId, ActivityType.LOOK_RENAMED, saved.getId(), saved.getName());
+		return toResponse(saved);
 	}
 
 	private LookResponse toResponse(LookEntity look) {

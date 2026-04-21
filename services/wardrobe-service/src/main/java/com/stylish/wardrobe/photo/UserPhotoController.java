@@ -5,6 +5,10 @@ import java.util.UUID;
 import com.stylish.wardrobe.photo.dto.UserPhotoResponse;
 import com.stylish.wardrobe.security.CurrentUser;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user-photos")
+@Tag(name = "User Photos", description = "Фото пользователя (исходник для примерки)")
+@SecurityRequirement(name = "bearer")
 public class UserPhotoController {
 	private final CurrentUser currentUser;
 	private final UserPhotoService userPhotoService;
@@ -28,11 +34,13 @@ public class UserPhotoController {
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@Operation(summary = "Загрузить фото пользователя (multipart/form-data: file)")
 	public UserPhotoResponse create(@RequestPart("file") MultipartFile file) {
 		return userPhotoMapper.toResponse(userPhotoService.create(currentUser.userId(), file));
 	}
 
 	@GetMapping("/{id}")
+	@Operation(summary = "Получить фото пользователя по id")
 	public UserPhotoResponse get(@PathVariable UUID id) {
 		return userPhotoMapper.toResponse(userPhotoService.get(currentUser.userId(), id));
 	}

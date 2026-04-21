@@ -7,6 +7,9 @@ import com.stylish.wardrobe.item.dto.ItemResponse;
 import com.stylish.wardrobe.item.dto.UpdateItemRequest;
 import com.stylish.wardrobe.security.CurrentUser;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -26,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/items")
+@Tag(name = "Items", description = "Вещи в гардеробе пользователя")
+@SecurityRequirement(name = "bearer")
 public class ItemController {
 	private final CurrentUser currentUser;
 	private final ItemService itemService;
@@ -38,6 +43,7 @@ public class ItemController {
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@Operation(summary = "Создать вещь с картинкой (multipart/form-data: metadata + file)")
 	public ItemResponse create(
 			@Valid @RequestPart("metadata") CreateItemMetadata metadata,
 			@RequestPart("file") MultipartFile file
@@ -46,11 +52,13 @@ public class ItemController {
 	}
 
 	@GetMapping("/{id}")
+	@Operation(summary = "Получить вещь по id")
 	public ItemResponse get(@PathVariable UUID id) {
 		return itemMapper.toResponse(itemService.get(currentUser.userId(), id));
 	}
 
 	@GetMapping
+	@Operation(summary = "Список вещей текущего пользователя с фильтрами и пагинацией")
 	public Page<ItemResponse> list(
 			@RequestParam(required = false) ItemType type,
 			@RequestParam(required = false) String color,
@@ -61,11 +69,13 @@ public class ItemController {
 	}
 
 	@PatchMapping("/{id}")
+	@Operation(summary = "Обновить метаданные вещи")
 	public ItemResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateItemRequest req) {
 		return itemMapper.toResponse(itemService.update(currentUser.userId(), id, req));
 	}
 
 	@DeleteMapping("/{id}")
+	@Operation(summary = "Удалить вещь (из БД и из S3)")
 	public void delete(@PathVariable UUID id) {
 		itemService.delete(currentUser.userId(), id);
 	}

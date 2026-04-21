@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.stylish.wardrobe.activity.ActivityService;
+import com.stylish.wardrobe.activity.ActivityType;
 import com.stylish.wardrobe.api.BadRequestException;
 import com.stylish.wardrobe.api.NotFoundException;
 import com.stylish.wardrobe.profile.ProfileEntity;
@@ -21,17 +23,20 @@ public class UserPhotoService {
 	private final UserPhotoRepository userPhotoRepository;
 	private final StorageService storageService;
 	private final ObjectKeyFactory objectKeyFactory;
+	private final ActivityService activityService;
 
 	public UserPhotoService(
 			ProfileService profileService,
 			UserPhotoRepository userPhotoRepository,
 			StorageService storageService,
-			ObjectKeyFactory objectKeyFactory
+			ObjectKeyFactory objectKeyFactory,
+			ActivityService activityService
 	) {
 		this.profileService = profileService;
 		this.userPhotoRepository = userPhotoRepository;
 		this.storageService = storageService;
 		this.objectKeyFactory = objectKeyFactory;
+		this.activityService = activityService;
 	}
 
 	@Transactional
@@ -49,7 +54,9 @@ public class UserPhotoService {
 			throw new BadRequestException("Failed to read uploaded file");
 		}
 
-		return userPhotoRepository.save(new UserPhotoEntity(profile, objectKey));
+		UserPhotoEntity saved = userPhotoRepository.save(new UserPhotoEntity(profile, objectKey));
+		activityService.record(userId, ActivityType.USER_PHOTO_UPLOADED, saved.getId(), null);
+		return saved;
 	}
 
 	@Transactional(readOnly = true)

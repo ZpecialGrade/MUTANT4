@@ -1,5 +1,8 @@
 package com.stylish.wardrobe.storage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/files")
+@Tag(name = "Files", description = "Отдача файлов из объектного хранилища (MinIO)")
 public class FileController {
 	private final StorageService storageService;
 
@@ -18,6 +22,7 @@ public class FileController {
 	}
 
 	@GetMapping("/{*objectKey}")
+	@Operation(summary = "Скачать файл по object key")
 	public ResponseEntity<InputStreamResource> download(@PathVariable String objectKey) {
 		StorageService.StoredObject obj = storageService.getObject(objectKey);
 		MediaType mediaType = MediaType.parseMediaType(obj.contentType());

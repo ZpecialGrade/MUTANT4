@@ -20,6 +20,9 @@ spring:
     default-schema: wardrobe
     schemas: wardrobe
     create-schemas: true
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/wardrobedb}
 
 management:
   endpoints:

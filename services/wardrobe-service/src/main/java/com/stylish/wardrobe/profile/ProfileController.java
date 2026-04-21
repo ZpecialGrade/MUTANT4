@@ -4,6 +4,9 @@ import com.stylish.wardrobe.profile.dto.CreateProfileRequest;
 import com.stylish.wardrobe.profile.dto.ProfileResponse;
 import com.stylish.wardrobe.security.CurrentUser;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/profiles")
+@Tag(name = "Profiles", description = "Профиль пользователя в гардеробе")
+@SecurityRequirement(name = "bearer")
 public class ProfileController {
 	private final CurrentUser currentUser;
 	private final ProfileService profileService;
@@ -26,11 +31,13 @@ public class ProfileController {
 	}
 
 	@PostMapping
+	@Operation(summary = "Создать профиль текущего пользователя")
 	public ProfileResponse create(@Valid @RequestBody CreateProfileRequest req) {
 		return profileMapper.toResponse(profileService.createProfile(currentUser.userId(), req.displayName()));
 	}
 
 	@GetMapping("/me")
+	@Operation(summary = "Профиль текущего пользователя")
 	public ProfileResponse me() {
 		return profileMapper.toResponse(profileService.getProfileByUserId(currentUser.userId()));
 	}

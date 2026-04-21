@@ -15,6 +15,18 @@ services:
       timeout: 3s
       retries: 20
 
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   minio:
     image: minio/minio:RELEASE.2025-02-28T09-55-16Z
     command: server /data --console-address ":9001"
@@ -40,8 +52,7 @@ services:
     entrypoint: >
       /bin/sh -c "
       mc alias set local http://minio:9000 stylish stylish123 &&
-      mc mb -p local/stylish || true &&
-      mc anonymous set download local/stylish || true
+      mc mb -p local/stylish || true
       "
 
   auth-service:
@@ -53,6 +64,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/stylish
       DB_USERNAME: stylish
       DB_PASSWORD: stylish
+      MONGO_URI: mongodb://mongo:27017/authdb
       JWT_ACCESS_SECRET: dev-access-secret-change-me-dev-access-secret-change-me
       JWT_ACCESS_TTL: PT15M
       JWT_REFRESH_TTL: P30D
@@ -60,6 +72,8 @@ services:
       - "8081:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
@@ -90,6 +104,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/stylish
       DB_USERNAME: stylish
       DB_PASSWORD: stylish
+      MONGO_URI: mongodb://mongo:27017/wardrobedb
       JWT_ACCESS_SECRET: dev-access-secret-change-me-dev-access-secret-change-me
       S3_ENDPOINT: http://minio:9000
       S3_ACCESS_KEY: stylish
@@ -101,6 +116,8 @@ services:
       - "8082:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
@@ -133,11 +150,12 @@ services:
       - "3000:80"
     depends_on:
       auth-service:
-        condition: service_started
+        condition: service_healthy
       wardrobe-service:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   postgres_data:
   minio_data:
+  mongo_data:
 

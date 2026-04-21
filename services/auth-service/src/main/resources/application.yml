@@ -20,6 +20,9 @@ spring:
     default-schema: auth
     schemas: auth
     create-schemas: true
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/authdb}
 
 management:
   endpoints:

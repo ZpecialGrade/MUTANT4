@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.stylish.wardrobe.activity.ActivityService;
+import com.stylish.wardrobe.activity.ActivityType;
 import com.stylish.wardrobe.api.BadRequestException;
 import com.stylish.wardrobe.api.NotFoundException;
 import com.stylish.wardrobe.item.dto.CreateItemMetadata;
@@ -26,17 +28,20 @@ public class ItemService {
 	private final ItemRepository itemRepository;
 	private final StorageService storageService;
 	private final ObjectKeyFactory objectKeyFactory;
+	private final ActivityService activityService;
 
 	public ItemService(
 			ProfileService profileService,
 			ItemRepository itemRepository,
 			StorageService storageService,
-			ObjectKeyFactory objectKeyFactory
+			ObjectKeyFactory objectKeyFactory,
+			ActivityService activityService
 	) {
 		this.profileService = profileService;
 		this.itemRepository = itemRepository;
 		this.storageService = storageService;
 		this.objectKeyFactory = objectKeyFactory;
+		this.activityService = activityService;
 	}
 
 	@Transactional
@@ -55,7 +60,9 @@ public class ItemService {
 		}
 
 		ItemEntity item = new ItemEntity(profile, meta.name(), meta.color(), meta.type(), objectKey);
-		return itemRepository.save(item);
+		ItemEntity saved = itemRepository.save(item);
+		activityService.record(userId, ActivityType.ITEM_CREATED, saved.getId(), saved.getName());
+		return saved;
 	}
 
 	@Transactional(readOnly = true)
@@ -77,14 +84,19 @@ public class ItemService {
 		if (req.type() != null) {
 			item.setType(req.type());
 		}
-		return itemRepository.save(item);
+		ItemEntity saved = itemRepository.save(item);
+		activityService.record(userId, ActivityType.ITEM_UPDATED, saved.getId(), saved.getName());
+		return saved;
 	}
 
 	@Transactional
 	public void delete(UUID userId, UUID itemId) {
 		ItemEntity item = get(userId, itemId);
+		UUID targetId = item.getId();
+		String name = item.getName();
 		itemRepository.delete(item);
 		storageService.deleteObject(item.getImageObjectKey());
+		activityService.record(userId, ActivityType.ITEM_DELETED, targetId, name);
 	}
 
 	@Transactional(readOnly = true)
