@@ -12,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -41,6 +42,11 @@ public class RestExceptionHandler {
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ProblemDetail handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
 		return problem(HttpStatus.BAD_REQUEST, ErrorCode.BAD_REQUEST, "Malformed JSON request", request.getRequestURI(), null);
+	}
+
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ProblemDetail handleNotFound(NoResourceFoundException ex, HttpServletRequest request) {
+		return problem(HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, "Not found", request.getRequestURI(), null);
 	}
 
 	@ExceptionHandler(Exception.class)
