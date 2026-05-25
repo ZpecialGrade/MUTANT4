@@ -1,0 +1,14 @@
+package com.stylish.wardrobe.api;
+
+public enum DmitriyErrorCode {
+	VALIDATION_ERROR,
+	NOT_FOUND,
+	CONFLICT,
+	UNAUTHORIZED,
+	FORBIDDEN,
+	BAD_REQUEST,
+	INTERNAL_ERROR,
+	STORAGE_ERROR,
+	GENERATION_FAILED
+}
+

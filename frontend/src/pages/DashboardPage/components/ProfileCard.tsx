@@ -74,7 +74,7 @@ export function ProfileCard({
         >
           <Input
             label="Display name"
-            placeholder="Например: Jigor"
+            placeholder="Например: Dima"
             {...createForm.register('displayName')}
             error={createForm.formState.errors.displayName?.message}
           />
